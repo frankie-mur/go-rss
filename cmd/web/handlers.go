@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"time"
@@ -32,7 +34,7 @@ type createUserRequest struct {
 	Name string `json:"name"`
 }
 
-func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
+func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	var payload createUserRequest
 	/* Need to also check len(payload.Name) because default behavior
@@ -41,8 +43,8 @@ func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Bad request")
 		return
 	}
-
-	user, err := app.DB.CreateUser(context.TODO(), database.CreateUserParams{
+	//Using name we can create a new user
+	user, err := app.DB.CreateUser(context.Background(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -53,4 +55,31 @@ func (app *application) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondWithJSON(w, http.StatusCreated, user)
+}
+
+func (app *application) getUserByApiKeyHandler(w http.ResponseWriter, r *http.Request) {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		respondWithError(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	//Validate authorization header is in correct format
+	apikey, err := validateAuthHeader(authHeader)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+	//Get the user
+	user, err := app.DB.GetUserByApiKey(context.Background(), apikey)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			respondWithError(w, http.StatusNotFound, "User not found")
+			return
+		} else {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+	//Send back user to client
+	respondWithJSON(w, http.StatusOK, user)
 }

@@ -37,7 +37,7 @@ func main() {
 		Addr:    fmt.Sprintf("localhost:%s", port),
 		Handler: app.routes(),
 	}
-	fmt.Printf("Starting server on addr %s", srv.Addr)
+	fmt.Printf("Starting server on addr %s\n", srv.Addr)
 	err = srv.ListenAndServe()
 	if err != nil {
 		log.Fatal(err.Error())

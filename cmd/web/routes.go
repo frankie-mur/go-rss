@@ -23,7 +23,8 @@ func (app *application) routes() *chi.Mux {
 
 	subrouter.Get("/readiness", app.readinessHandler)
 	subrouter.Get("/err", app.errorHandler)
-	subrouter.Post("/users", app.createUser)
+	subrouter.Post("/users", app.createUserHandler)
+	subrouter.Get("/users", app.getUserByApiKeyHandler)
 
 	return router
 }

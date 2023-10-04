@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strings"
 )
 
 func respondWithJSON(w http.ResponseWriter, status int, payload interface{}) error {
@@ -27,4 +29,13 @@ func respondWithError(w http.ResponseWriter, code int, msg string) error {
 		return err
 	}
 	return nil
+}
+
+func validateAuthHeader(authHeader string) (string, error) {
+	// Split the header to check for the "Bearer" format
+	splitToken := strings.Split(authHeader, "Bearer ")
+	if len(splitToken) != 2 {
+		return "", errors.New("invalid auth header")
+	}
+	return splitToken[1], nil // The actual token
 }
