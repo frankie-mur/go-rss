@@ -28,6 +28,7 @@ func (app *application) routes() *chi.Mux {
 	subrouter.Post("/users", app.createUserHandler)
 	subrouter.Get("/users", app.middlewareAuth(app.getUserByApiKeyHandler))
 	subrouter.Post("/feeds", app.middlewareAuth(app.createFeedHandler))
+	subrouter.Get("/feeds", app.getAllFeedsHandler)
 
 	return router
 }

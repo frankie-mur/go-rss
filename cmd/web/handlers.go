@@ -85,8 +85,19 @@ func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request
 
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
 	}
 
 	respondWithJSON(w, http.StatusCreated, data)
+}
+
+func (app *application) getAllFeedsHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := app.DB.GetAllFeeds(context.Background())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, data)
 
 }
