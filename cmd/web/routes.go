@@ -1,12 +1,14 @@
 package main
 
 import (
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )
 
 func (app *application) routes() *chi.Mux {
 	router := chi.NewRouter()
+	router.Use(middleware.Logger)
 	router.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
 		AllowedOrigins: []string{"https://*", "http://*"},
@@ -24,7 +26,8 @@ func (app *application) routes() *chi.Mux {
 	subrouter.Get("/readiness", app.readinessHandler)
 	subrouter.Get("/err", app.errorHandler)
 	subrouter.Post("/users", app.createUserHandler)
-	subrouter.Get("/users", app.getUserByApiKeyHandler)
+	subrouter.Get("/users", app.middlewareAuth(app.getUserByApiKeyHandler))
+	subrouter.Post("/feeds", app.middlewareAuth(app.createFeedHandler))
 
 	return router
 }

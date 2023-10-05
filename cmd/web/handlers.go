@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -57,29 +56,37 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, http.StatusCreated, user)
 }
 
-func (app *application) getUserByApiKeyHandler(w http.ResponseWriter, r *http.Request) {
-	authHeader := r.Header.Get("Authorization")
-	if authHeader == "" {
-		respondWithError(w, http.StatusUnauthorized, "Unauthorized")
-		return
-	}
-	//Validate authorization header is in correct format
-	apikey, err := validateAuthHeader(authHeader)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, err.Error())
-		return
-	}
-	//Get the user
-	user, err := app.DB.GetUserByApiKey(context.Background(), apikey)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			respondWithError(w, http.StatusNotFound, "User not found")
-			return
-		} else {
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-	}
+func (app *application) getUserByApiKeyHandler(w http.ResponseWriter, r *http.Request, u database.User) {
 	//Send back user to client
-	respondWithJSON(w, http.StatusOK, user)
+	respondWithJSON(w, http.StatusOK, u)
+}
+
+type createFeedRequest struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}
+
+func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request, u database.User) {
+	decoder := json.NewDecoder(r.Body)
+	fmt.Println("here")
+	var req createFeedRequest
+	if err := decoder.Decode(&req); err != nil || req.Name == "" || req.Url == "" {
+		respondWithError(w, http.StatusBadRequest, "Bad Request")
+		return
+	}
+	data, err := app.DB.CreateFeed(context.Background(), database.CreateFeedParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      req.Name,
+		Url:       req.Url,
+		UserID:    u.ID,
+	})
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+	}
+
+	respondWithJSON(w, http.StatusCreated, data)
+
 }
