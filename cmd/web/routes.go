@@ -22,14 +22,19 @@ func (app *application) routes() *chi.Mux {
 
 	subrouter := chi.NewRouter()
 	router.Mount("/v1", subrouter)
-
+	// Health
 	subrouter.Get("/readiness", app.readinessHandler)
 	subrouter.Get("/err", app.errorHandler)
+	//Users
 	subrouter.Post("/users", app.createUserHandler)
 	subrouter.Get("/users", app.middlewareAuth(app.getUserByApiKeyHandler))
+	//Feeds
 	subrouter.Post("/feeds", app.middlewareAuth(app.createFeedHandler))
 	subrouter.Get("/feeds", app.getAllFeedsHandler)
+	//Feed Follows
+	subrouter.Get("/feed_follows", app.middlewareAuth(app.getAllFeedFollows))
 	subrouter.Post("/feed_follows", app.middlewareAuth(app.createFeedFollowHandler))
+	subrouter.Delete("/feed_follows/{id}", app.deleteFeedFollowHandler)
 
 	return router
 }

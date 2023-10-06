@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/frankie-mur/go-rss/internal/database"
+	"github.com/go-chi/chi"
 	"github.com/google/uuid"
 )
 
@@ -64,13 +65,19 @@ type createFeedRequest struct {
 	Url  string `json:"url"`
 }
 
+type createFeedResponse struct {
+	Feed        database.Feed       `json:"feed"`
+	Feed_Follow database.FeedFollow `json:"feed_follow"`
+}
+
 func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request, u database.User) {
 	var req createFeedRequest
 	if err := decodeJson(r, &req); err != nil || len(req.Name) == 0 || len(req.Url) == 0 {
 		respondWithError(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
-	data, err := app.DB.CreateFeed(context.Background(), database.CreateFeedParams{
+	//Create a new feed
+	feed, err := app.DB.CreateFeed(context.Background(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -78,19 +85,37 @@ func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request
 		Url:       req.Url,
 		UserID:    u.ID,
 	})
-
 	if err != nil {
+		fmt.Printf("failed with error %v", err)
 		//TODO: handle duplicate key error (violates uniqueness)
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
+	//Create a feed follow
+	feed_follow, err := app.DB.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    u.ID,
+		FeedID:    feed.ID,
+	})
 
-	respondWithJSON(w, http.StatusCreated, data)
+	if err != nil {
+		fmt.Printf("failed with error %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, createFeedResponse{
+		Feed:        feed,
+		Feed_Follow: feed_follow,
+	})
 }
 
 func (app *application) getAllFeedsHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := app.DB.GetAllFeeds(context.Background())
 	if err != nil {
+		fmt.Printf("failed with error %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
@@ -110,6 +135,7 @@ func (app *application) createFeedFollowHandler(w http.ResponseWriter, r *http.R
 		respondWithError(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
+
 	data, err := app.DB.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
@@ -117,6 +143,7 @@ func (app *application) createFeedFollowHandler(w http.ResponseWriter, r *http.R
 		UserID:    u.ID,
 		FeedID:    req.Feed_id,
 	})
+
 	if err != nil {
 		fmt.Printf("failed with error %v", err)
 		//TODO: Need to handle error when feed_id does not match to a feed ID
@@ -125,4 +152,36 @@ func (app *application) createFeedFollowHandler(w http.ResponseWriter, r *http.R
 	}
 
 	respondWithJSON(w, http.StatusCreated, data)
+}
+
+func (app *application) deleteFeedFollowHandler(w http.ResponseWriter, r *http.Request) {
+	param := chi.URLParam(r, "id")
+	// if len(param) == 0 {
+	// 	respondWithError(w, http.StatusBadRequest, "Provide feed follow ID")
+	// 	return
+	// }
+	fmt.Printf("Param %s\n", param)
+	feed_id, err := uuid.Parse(param)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid feed ID")
+		return
+	}
+
+	err = app.DB.DeleteFeedFollow(context.Background(), feed_id)
+	if err != nil {
+		fmt.Printf("failed with error %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, "OK")
+}
+
+func (app *application) getAllFeedFollows(w http.ResponseWriter, r *http.Request, u database.User) {
+	feed_follows, err := app.DB.GetAllFeedFollows(context.Background(), u.ID)
+	if err != nil {
+		fmt.Printf("failed with error %v", err)
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+	respondWithJSON(w, http.StatusOK, feed_follows)
 }
