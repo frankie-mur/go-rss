@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -34,11 +33,10 @@ type createUserRequest struct {
 }
 
 func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
-	decoder := json.NewDecoder(r.Body)
-	var payload createUserRequest
 	/* Need to also check len(payload.Name) because default behavior
 	does not error if field is not present */
-	if err := decoder.Decode(&payload); err != nil || len(payload.Name) == 0 {
+	var req createUserRequest
+	if err := decodeJson(r, &req); err != nil || len(req.Name) == 0 {
 		respondWithError(w, http.StatusBadRequest, "Bad request")
 		return
 	}
@@ -47,7 +45,7 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Name:      payload.Name,
+		Name:      req.Name,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
@@ -67,10 +65,8 @@ type createFeedRequest struct {
 }
 
 func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request, u database.User) {
-	decoder := json.NewDecoder(r.Body)
-	fmt.Println("here")
 	var req createFeedRequest
-	if err := decoder.Decode(&req); err != nil || req.Name == "" || req.Url == "" {
+	if err := decodeJson(r, &req); err != nil || len(req.Name) == 0 || len(req.Url) == 0 {
 		respondWithError(w, http.StatusBadRequest, "Bad Request")
 		return
 	}
@@ -84,6 +80,7 @@ func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request
 	})
 
 	if err != nil {
+		//TODO: handle duplicate key error (violates uniqueness)
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
@@ -100,4 +97,32 @@ func (app *application) getAllFeedsHandler(w http.ResponseWriter, r *http.Reques
 
 	respondWithJSON(w, http.StatusOK, data)
 
+}
+
+type createFeedFollowRequest struct {
+	Feed_id uuid.UUID `json:"feed_id"`
+}
+
+func (app *application) createFeedFollowHandler(w http.ResponseWriter, r *http.Request, u database.User) {
+	var req createFeedFollowRequest
+	if err := decodeJson(r, &req); err != nil || len(req.Feed_id) == 0 {
+		fmt.Printf("failed with error %v", err)
+		respondWithError(w, http.StatusBadRequest, "Bad Request")
+		return
+	}
+	data, err := app.DB.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    u.ID,
+		FeedID:    req.Feed_id,
+	})
+	if err != nil {
+		fmt.Printf("failed with error %v", err)
+		//TODO: Need to handle error when feed_id does not match to a feed ID
+		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, data)
 }

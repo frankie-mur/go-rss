@@ -39,3 +39,7 @@ func validateAuthHeader(authHeader string) (string, error) {
 	}
 	return splitToken[1], nil // The actual token
 }
+
+func decodeJson(r *http.Request, payload interface{}) error {
+	return json.NewDecoder(r.Body).Decode(payload)
+}
