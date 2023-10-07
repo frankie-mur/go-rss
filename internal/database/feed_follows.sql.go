@@ -12,13 +12,51 @@ import (
 	"github.com/google/uuid"
 )
 
-const deleteFeedFollow = `-- name: DeleteFeedFollow :exec
-DELETE FROM feed_follows 
-WHERE feed_id = $1
+const createFeedFollow = `-- name: CreateFeedFollow :one
+INSERT INTO feed_follows (id, created_at, updated_at, user_id, feed_id)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, created_at, updated_at, user_id, feed_id
 `
 
-func (q *Queries) DeleteFeedFollow(ctx context.Context, feedID uuid.UUID) error {
-	_, err := q.db.ExecContext(ctx, deleteFeedFollow, feedID)
+type CreateFeedFollowParams struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	UserID    uuid.UUID
+	FeedID    uuid.UUID
+}
+
+func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowParams) (FeedFollow, error) {
+	row := q.db.QueryRowContext(ctx, createFeedFollow,
+		arg.ID,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.UserID,
+		arg.FeedID,
+	)
+	var i FeedFollow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.FeedID,
+	)
+	return i, err
+}
+
+const deleteFeedFollow = `-- name: DeleteFeedFollow :exec
+DELETE FROM feed_follows 
+WHERE feed_follows.feed_id = $1 and feed_follows.user_id = $2
+`
+
+type DeleteFeedFollowParams struct {
+	FeedID uuid.UUID
+	UserID uuid.UUID
+}
+
+func (q *Queries) DeleteFeedFollow(ctx context.Context, arg DeleteFeedFollowParams) error {
+	_, err := q.db.ExecContext(ctx, deleteFeedFollow, arg.FeedID, arg.UserID)
 	return err
 }
 
@@ -54,37 +92,4 @@ func (q *Queries) GetAllFeedFollows(ctx context.Context, userID uuid.UUID) ([]Fe
 		return nil, err
 	}
 	return items, nil
-}
-
-const createFeedFollow = `-- name: createFeedFollow :one
-INSERT INTO feed_follows (id, created_at, updated_at, user_id, feed_id)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, created_at, updated_at, user_id, feed_id
-`
-
-type CreateFeedFollowParams struct {
-	ID        uuid.UUID
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	UserID    uuid.UUID
-	FeedID    uuid.UUID
-}
-
-func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowParams) (FeedFollow, error) {
-	row := q.db.QueryRowContext(ctx, createFeedFollow,
-		arg.ID,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.UserID,
-		arg.FeedID,
-	)
-	var i FeedFollow
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.UserID,
-		&i.FeedID,
-	)
-	return i, err
 }

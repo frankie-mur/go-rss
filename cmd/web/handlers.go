@@ -77,7 +77,7 @@ func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	//Create a new feed
-	feed, err := app.DB.CreateFeed(context.Background(), database.CreateFeedParams{
+	feed, err := app.DB.CreateFeed(r.Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -92,7 +92,7 @@ func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	//Create a feed follow
-	feed_follow, err := app.DB.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+	feed_follow, err := app.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -113,7 +113,7 @@ func (app *application) createFeedHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) getAllFeedsHandler(w http.ResponseWriter, r *http.Request) {
-	data, err := app.DB.GetAllFeeds(context.Background())
+	data, err := app.DB.GetAllFeeds(r.Context())
 	if err != nil {
 		fmt.Printf("failed with error %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
@@ -136,7 +136,7 @@ func (app *application) createFeedFollowHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	data, err := app.DB.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+	data, err := app.DB.CreateFeedFollow(r.Context(), database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -154,7 +154,7 @@ func (app *application) createFeedFollowHandler(w http.ResponseWriter, r *http.R
 	respondWithJSON(w, http.StatusCreated, data)
 }
 
-func (app *application) deleteFeedFollowHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) deleteFeedFollowHandler(w http.ResponseWriter, r *http.Request, u database.User) {
 	param := chi.URLParam(r, "id")
 	// if len(param) == 0 {
 	// 	respondWithError(w, http.StatusBadRequest, "Provide feed follow ID")
@@ -166,8 +166,10 @@ func (app *application) deleteFeedFollowHandler(w http.ResponseWriter, r *http.R
 		respondWithError(w, http.StatusBadRequest, "Invalid feed ID")
 		return
 	}
-
-	err = app.DB.DeleteFeedFollow(context.Background(), feed_id)
+	err = app.DB.DeleteFeedFollow(r.Context(), database.DeleteFeedFollowParams{
+		FeedID: feed_id,
+		UserID: u.ID,
+	})
 	if err != nil {
 		fmt.Printf("failed with error %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
@@ -177,7 +179,7 @@ func (app *application) deleteFeedFollowHandler(w http.ResponseWriter, r *http.R
 }
 
 func (app *application) getAllFeedFollows(w http.ResponseWriter, r *http.Request, u database.User) {
-	feed_follows, err := app.DB.GetAllFeedFollows(context.Background(), u.ID)
+	feed_follows, err := app.DB.GetAllFeedFollows(r.Context(), u.ID)
 	if err != nil {
 		fmt.Printf("failed with error %v", err)
 		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
