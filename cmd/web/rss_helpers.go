@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -42,23 +41,19 @@ func fetchFeed(url string) (Rss, error) {
 	if err != nil {
 		return Rss{}, err
 	}
-	fmt.Println("here")
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return Rss{}, errors.New("URL returned non 200 status")
 	}
 	body, err := io.ReadAll(resp.Body)
-	fmt.Println("here1")
 	if err != nil {
 		return Rss{}, err
 	}
 	var rss Rss
 	err = xml.Unmarshal(body, &rss)
-	fmt.Println("here2")
 	if err != nil {
 		return Rss{}, err
 	}
-	fmt.Println("here3")
 	return rss, nil
 
 }

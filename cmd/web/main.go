@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/frankie-mur/go-rss/internal/database"
 	"github.com/joho/godotenv"
@@ -28,10 +29,12 @@ func main() {
 	}
 
 	defer db.Close()
-
+	datastore := database.New(db)
 	app := &application{
-		DB: database.New(db),
+		DB: datastore,
 	}
+
+	initScraper(datastore, 10, time.Minute)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("localhost:%s", port),
