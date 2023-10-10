@@ -8,11 +8,11 @@ SELECT * FROM feeds;
 
 -- name: GetNextFeedsToFetch :many
 SELECT * FROM feeds
-ORDER BY feeds.last_fetched_at ASC NULLS FIRST
+ORDER BY last_fetched_at ASC NULLS FIRST
 LIMIT $1;
 
 -- name: MarkFeedAsFetched :one
 UPDATE feeds
-SET feeds.last_fetched_at = NOW(), feeds.updated_at = NOW()
+SET last_fetched_at = NOW(), updated_at = NOW()
 WHERE feeds.id = $1 
-RETURNING *
+RETURNING *;

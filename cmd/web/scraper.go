@@ -41,7 +41,7 @@ func initScraper(
 func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 	defer wg.Done()
 
-	err := db.MarkFeedAsFetched(context.Background(), feed.ID)
+	_, err := db.MarkFeedAsFetched(context.Background(), feed.ID)
 	if err != nil {
 		log.Printf("Failed to mark feed as fetched: %v", err)
 		return

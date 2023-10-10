@@ -5,4 +5,4 @@ RETURNING *;
 
 -- name: GetUserByApiKey :one
 SELECT * FROM users
-WHERE users.apikey = $1 LIMIT 1;
+WHERE apikey = $1 LIMIT 1;
