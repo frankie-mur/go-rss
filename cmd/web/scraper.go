@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/frankie-mur/go-rss/internal/database"
+	"github.com/google/uuid"
 )
 
 func initScraper(
@@ -53,7 +55,37 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 		return
 	}
 	for _, f := range fetched_feed.Channel.Item {
-		log.Printf("Found post %s", f.Title)
+		//TODO: Description and published at not being inserted correctly
+		feed_time := sql.NullTime{}
+		if f.PubDate == "" {
+			feed_time.Time = time.Now()
+			feed_time.Valid = false
+		}
+		time_parsed, err := time.Parse("2006-01-02T15:04:05Z", f.PubDate)
+		if err != nil {
+			log.Printf("Failed to parse time: %v", err)
+
+		}
+		feed_time.Time = time_parsed
+		feed_time.Valid = true
+		post, err := db.CreatePost(
+			context.Background(),
+			database.CreatePostParams{
+				ID:          uuid.New(),
+				CreatedAt:   time.Now(),
+				UpdatedAt:   time.Now(),
+				Title:       f.Title,
+				Url:         f.Link,
+				Description: f.Description,
+				PublishedAt: feed_time,
+				FeedID:      feed.ID,
+			},
+		)
+		if err != nil {
+			log.Printf("Failed with error: %v", err)
+		}
+
+		log.Printf("Created Post with id %v, and title %s", post.ID, post.Title)
 	}
 
 	log.Printf("Fetched feed with title %s, with %d posts", fetched_feed.Channel.Title, len(fetched_feed.Channel.Item))
