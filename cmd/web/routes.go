@@ -34,6 +34,8 @@ func (app *application) routes() *chi.Mux {
 	subrouter.Get("/feed_follows", app.middlewareAuth(app.getAllFeedFollows))
 	subrouter.Post("/feed_follows", app.middlewareAuth(app.createFeedFollowHandler))
 	subrouter.Delete("/feed_follows/{id}", app.middlewareAuth(app.deleteFeedFollowHandler))
+	//Posts
+	subrouter.Get("/posts/{limit}", app.middlewareAuth(app.getPostsByUserHandler))
 
 	router.Mount("/v1", subrouter)
 

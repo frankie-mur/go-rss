@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/frankie-mur/go-rss/internal/database"
@@ -191,4 +192,31 @@ func (app *application) getAllFeedFollows(w http.ResponseWriter, r *http.Request
 		return
 	}
 	respondWithJSON(w, http.StatusOK, feed_follows)
+}
+
+func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Request, u database.User) {
+	param := chi.URLParam(r, "limit")
+	var limit int
+	var err error
+	if len(param) == 0 {
+		limit = 15
+	} else {
+		limit, err = strconv.Atoi(param)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Failed to parse limit")
+			return
+		}
+	}
+
+	posts, err := app.DB.GetPostsByUserId(r.Context(), database.GetPostsByUserIdParams{
+		UserID: u.ID,
+		Limit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, posts)
+
 }
