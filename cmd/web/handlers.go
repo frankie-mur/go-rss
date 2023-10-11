@@ -156,11 +156,16 @@ func (app *application) createFeedFollowHandler(w http.ResponseWriter, r *http.R
 
 func (app *application) deleteFeedFollowHandler(w http.ResponseWriter, r *http.Request, u database.User) {
 	param := chi.URLParam(r, "id")
+	feedFollowID, err := uuid.Parse(param)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid feed follow ID")
+		return
+	}
 	// if len(param) == 0 {
 	// 	respondWithError(w, http.StatusBadRequest, "Provide feed follow ID")
 	// 	return
 	// }
-	fmt.Printf("Param %s\n", param)
+	fmt.Printf("Param %s\n", feedFollowID)
 	feed_id, err := uuid.Parse(param)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid feed ID")

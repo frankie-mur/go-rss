@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -61,7 +62,7 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 			feed_time.Time = time.Now()
 			feed_time.Valid = false
 		}
-		time_parsed, err := time.Parse("2006-01-02T15:04:05Z", f.PubDate)
+		time_parsed, err := time.Parse("Mon, 02 Jan 2006 15:04:05 -0700", f.PubDate)
 		if err != nil {
 			log.Printf("Failed to parse time: %v", err)
 
@@ -82,6 +83,10 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 			},
 		)
 		if err != nil {
+			//Want to ignore duplicate key errors as they are Posts already in db
+			if strings.Contains(err.Error(), "duplicate key") {
+				continue
+			}
 			log.Printf("Failed with error: %v", err)
 		}
 

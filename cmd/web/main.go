@@ -34,7 +34,7 @@ func main() {
 		DB: datastore,
 	}
 
-	go initScraper(datastore, 10, time.Minute)
+	go initScraper(datastore, 10, time.Hour)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("localhost:%s", port),
