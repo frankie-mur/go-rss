@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"strconv"
@@ -194,7 +195,7 @@ func (app *application) getAllFeedFollows(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, http.StatusOK, feed_follows)
 }
 
-func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Request, u database.User) {
+func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Request) {
 	param := chi.URLParam(r, "limit")
 	var limit int
 	var err error
@@ -203,20 +204,58 @@ func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Req
 	} else {
 		limit, err = strconv.Atoi(param)
 		if err != nil {
+			fmt.Printf("Failed with err %v\n", err)
 			respondWithError(w, http.StatusInternalServerError, "Failed to parse limit")
 			return
 		}
 	}
 
 	posts, err := app.DB.GetPostsByUserId(r.Context(), database.GetPostsByUserIdParams{
-		UserID: u.ID,
+		//Hard code in a UUID
+		UserID: uuid.MustParse("7d189d65-3164-4261-9293-a9f79da73560"),
 		Limit:  int32(limit),
 	})
+	fmt.Println(posts)
 	if err != nil {
+		fmt.Printf("Failed with err %v\n", err)
+		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
+		return
+	}html
+	//TODO: hackernews descriptions are coming out as html strings
+	tmpl := `
+	{{range .}}
+<div class="max-w-sm rounded overflow-hidden shadow-lg bg-white m-4">
+  <img
+    class="w-full"
+    src="https://via.placeholder.com/400x200"
+    alt="Sunset in the mountains"
+  />
+  <div class="px-6 py-4">
+  	<a href={{.Url}}>
+    <div class="font-bold text-xl mb-2">{{.Title}}</div>
+	</a>
+    <p class="text-gray-700 text-base">{{.Description}}</p>
+  </div>
+  <div class="px-6 pt-4 pb-2">
+    <span
+      class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
+      >{{.PublishedAt}}</span
+    >
+  </div>
+</div>
+{{end}}
+	`
+	t, err := template.New("posts").Parse(tmpl)
+	if err != nil {
+		fmt.Printf("Failed with err %v\n", err)
 		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
 		return
 	}
-
-	respondWithJSON(w, http.StatusOK, posts)
-
+	err = t.Execute(w, posts)
+	if err != nil {
+		fmt.Printf("Failed with err %v\n", err)
+		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
+		return
+	}
+	//renderTemplate(w, http.StatusOK, posts)
 }
