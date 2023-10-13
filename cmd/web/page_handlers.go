@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
-	"html/template"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
-func (app *application) indexHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("ui/html/pages/index.go.tmpl"))
-	if err := tmpl.Execute(w, r); err != nil {
-		fmt.Println("Could not execute template", err)
-	}
+func (app *application) indexHandler(e echo.Context) error {
+	return e.Render(http.StatusOK, "index", nil)
 }

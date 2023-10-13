@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -12,36 +10,26 @@ import (
 	"github.com/frankie-mur/go-rss/internal/database"
 	"github.com/go-chi/chi"
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 )
 
-func (app *application) readinessHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) readinessHandler(c echo.Context) error {
 	data := map[string]string{
 		"status": "OK",
 	}
-	err := respondWithJSON(w, 200, data)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-func (app *application) errorHandler(w http.ResponseWriter, r *http.Request) {
-	err := respondWithError(w, 500, "Internal Server Error")
-	if err != nil {
-		log.Fatal(err)
-	}
+	return c.JSON(200, data)
 }
 
 type createUserRequest struct {
 	Name string `json:"name"`
 }
 
-func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createUserHandler(c echo.Context) error {
 	/* Need to also check len(payload.Name) because default behavior
 	does not error if field is not present */
 	var req createUserRequest
-	if err := decodeJson(r, &req); err != nil || len(req.Name) == 0 {
-		respondWithError(w, http.StatusBadRequest, "Bad request")
-		return
+	if err := decodeJson(c.Request(), &req); err != nil || len(req.Name) == 0 {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	//Using name we can create a new user
 	user, err := app.DB.CreateUser(context.Background(), database.CreateUserParams{
@@ -51,10 +39,9 @@ func (app *application) createUserHandler(w http.ResponseWriter, r *http.Request
 		Name:      req.Name,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
-		return
+		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	respondWithJSON(w, http.StatusCreated, user)
+	return c.JSON(http.StatusOK, user)
 }
 
 func (app *application) getUserByApiKeyHandler(w http.ResponseWriter, r *http.Request, u database.User) {
@@ -195,67 +182,33 @@ func (app *application) getAllFeedFollows(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, http.StatusOK, feed_follows)
 }
 
-func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Request) {
-	param := chi.URLParam(r, "limit")
+func (app *application) getPostsByUserHandler(e echo.Context) error {
+	param := e.Param("limit")
 	var limit int
 	var err error
+	fmt.Printf("Param: %v", param)
 	if len(param) == 0 {
 		limit = 15
 	} else {
 		limit, err = strconv.Atoi(param)
 		if err != nil {
-			fmt.Printf("Failed with err %v\n", err)
-			respondWithError(w, http.StatusInternalServerError, "Failed to parse limit")
-			return
+			echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	}
 
-	posts, err := app.DB.GetPostsByUserId(r.Context(), database.GetPostsByUserIdParams{
+	posts, err := app.DB.GetPostsByUserId(e.Request().Context(), database.GetPostsByUserIdParams{
 		//Hard code in a UUID
 		UserID: uuid.MustParse("8a2de18d-4813-431e-a038-38dac55e22d8"),
 		Limit:  int32(limit),
 	})
-	fmt.Println(posts)
 	if err != nil {
-		fmt.Printf("Failed with err %v\n", err)
-		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
-		return
+		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	//TODO: hackernews descriptions are coming out as html strings
-	tmpl := `
-	{{range .}}
-<div class="max-w-sm rounded overflow-hidden shadow-lg bg-white m-4">
-<a href={{.Url}}>
-  <img
-    class="w-full"
-    src="https://via.placeholder.com/400x200"
-    alt="Sunset in the mountains"
-  />
-  <div class="px-6 py-4">
-    <div class="font-bold text-xl mb-2">{{.Title}}</div>
-    <p class="text-gray-700 text-base">{{.Description}}</p>
-  </div>
-  <div class="px-6 pt-4 pb-2">
-    <span
-      class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
-      >{{.PublishedAt}}</span
-    >
-  </div>
-  </a>
-</div>
-{{end}}
-	`
-	t, err := template.New("posts").Parse(tmpl)
 	if err != nil {
-		fmt.Printf("Failed with err %v\n", err)
-		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
-		return
+		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	err = t.Execute(w, posts)
 	if err != nil {
-		fmt.Printf("Failed with err %v\n", err)
-		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
-		return
+		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	//renderTemplate(w, http.StatusOK, posts)
+	return e.Render(http.StatusOK, "posts", posts)
 }

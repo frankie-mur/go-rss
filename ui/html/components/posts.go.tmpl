@@ -1,5 +1,7 @@
+{{define "posts"}}
 {{range .}}
 <div class="max-w-sm rounded overflow-hidden shadow-lg bg-white m-4">
+	<a href={{.Url}}>
   <img
     class="w-full"
     src="https://via.placeholder.com/400x200"
@@ -12,12 +14,10 @@
   <div class="px-6 pt-4 pb-2">
     <span
       class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
-      >{{.Url}}</span
-    >
-    <span
-      class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
       >{{.PublishedAt}}</span
     >
   </div>
+  </a>
 </div>
+{{end}}
 {{end}}

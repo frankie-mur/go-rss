@@ -22,12 +22,11 @@ func (app *application) routes() *chi.Mux {
 
 	subrouter := chi.NewRouter()
 	//Pages
-	router.Get("/", app.indexHandler)
+	app.e.GET("/", app.indexHandler)
 	// Health
-	subrouter.Get("/readiness", app.readinessHandler)
-	subrouter.Get("/err", app.errorHandler)
+	app.e.GET("/health", app.readinessHandler)
 	//Users
-	subrouter.Post("/users", app.createUserHandler)
+	app.e.POST("/users", app.createUserHandler)
 	subrouter.Get("/users", app.middlewareAuth(app.getUserByApiKeyHandler))
 	//Feeds
 	subrouter.Post("/feeds", app.middlewareAuth(app.createFeedHandler))
@@ -38,9 +37,7 @@ func (app *application) routes() *chi.Mux {
 	subrouter.Delete("/feed_follows/{id}", app.middlewareAuth(app.deleteFeedFollowHandler))
 	//Posts
 	//Interim: Remove middleware
-	subrouter.Get("/posts/{limit}", app.getPostsByUserHandler)
-
-	router.Mount("/v1", subrouter)
+	app.e.GET("/posts/:limit", app.getPostsByUserHandler)
 
 	return router
 }
