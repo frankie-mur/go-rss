@@ -212,7 +212,7 @@ func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Req
 
 	posts, err := app.DB.GetPostsByUserId(r.Context(), database.GetPostsByUserIdParams{
 		//Hard code in a UUID
-		UserID: uuid.MustParse("7d189d65-3164-4261-9293-a9f79da73560"),
+		UserID: uuid.MustParse("8a2de18d-4813-431e-a038-38dac55e22d8"),
 		Limit:  int32(limit),
 	})
 	fmt.Println(posts)
@@ -220,20 +220,19 @@ func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Req
 		fmt.Printf("Failed with err %v\n", err)
 		respondWithError(w, http.StatusInternalServerError, "Interval Server Error")
 		return
-	}html
+	}
 	//TODO: hackernews descriptions are coming out as html strings
 	tmpl := `
 	{{range .}}
 <div class="max-w-sm rounded overflow-hidden shadow-lg bg-white m-4">
+<a href={{.Url}}>
   <img
     class="w-full"
     src="https://via.placeholder.com/400x200"
     alt="Sunset in the mountains"
   />
   <div class="px-6 py-4">
-  	<a href={{.Url}}>
     <div class="font-bold text-xl mb-2">{{.Title}}</div>
-	</a>
     <p class="text-gray-700 text-base">{{.Description}}</p>
   </div>
   <div class="px-6 pt-4 pb-2">
@@ -242,6 +241,7 @@ func (app *application) getPostsByUserHandler(w http.ResponseWriter, r *http.Req
       >{{.PublishedAt}}</span
     >
   </div>
+  </a>
 </div>
 {{end}}
 	`
