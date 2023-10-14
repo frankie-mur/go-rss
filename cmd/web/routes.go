@@ -20,21 +20,22 @@ func (app *application) routes() *chi.Mux {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
-	subrouter := chi.NewRouter()
+	//subrouter := chi.NewRouter()
 	//Pages
 	app.e.GET("/", app.indexHandler)
 	// Health
 	app.e.GET("/health", app.readinessHandler)
 	//Users
 	app.e.POST("/users", app.createUserHandler)
-	subrouter.Get("/users", app.middlewareAuth(app.getUserByApiKeyHandler))
+	//AUTH
+	app.e.GET("/users", app.middlewareAuth(app.getUserByApiKeyHandler))
 	//Feeds
-	subrouter.Post("/feeds", app.middlewareAuth(app.createFeedHandler))
-	subrouter.Get("/feeds", app.getAllFeedsHandler)
-	//Feed Follows
-	subrouter.Get("/feed_follows", app.middlewareAuth(app.getAllFeedFollows))
-	subrouter.Post("/feed_follows", app.middlewareAuth(app.createFeedFollowHandler))
-	subrouter.Delete("/feed_follows/{id}", app.middlewareAuth(app.deleteFeedFollowHandler))
+	app.e.POST("/feeds", app.middlewareAuth(app.createFeedHandler))
+	app.e.GET("/feeds", app.getAllFeedsHandler)
+	// //Feed Follows
+	app.e.GET("/feed_follows", app.middlewareAuth(app.getAllFeedFollows))
+	app.e.POST("/feed_follows", app.middlewareAuth(app.createFeedFollowHandler))
+	app.e.DELETE("/feed_follows/:id", app.middlewareAuth(app.deleteFeedFollowHandler))
 	//Posts
 	//Interim: Remove middleware
 	app.e.GET("/posts/:limit", app.getPostsByUserHandler)

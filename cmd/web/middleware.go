@@ -7,35 +7,33 @@ import (
 	"net/http"
 
 	"github.com/frankie-mur/go-rss/internal/database"
+	"github.com/labstack/echo/v4"
 )
 
-type authedHandler func(http.ResponseWriter, *http.Request, database.User)
+type authedHandler func(e echo.Context, u database.User) error
 
-func (app *application) middlewareAuth(handler authedHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		authHeader := r.Header.Get("Authorization")
+func (app *application) middlewareAuth(handler authedHandler) echo.HandlerFunc {
+	return func(e echo.Context) error {
+		authHeader := e.Request().Header.Get("Authorization")
 		if authHeader == "" {
-			respondWithError(w, http.StatusUnauthorized, "Unauthorized")
-			return
+			echo.NewHTTPError(http.StatusUnauthorized, errors.New("Invalid authorization header"))
 		}
 		//Validate authorization header is in correct format
 		apikey, err := validateAuthHeader(authHeader)
 		if err != nil {
-			respondWithError(w, http.StatusUnauthorized, err.Error())
-			return
+			echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 		}
 		//check if apikey matches to a user
-		user, err := app.DB.GetUserByApiKey(r.Context(), apikey)
+		user, err := app.DB.GetUserByApiKey(e.Request().Context(), apikey)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				respondWithError(w, http.StatusUnauthorized, "Unauthorized")
-				return
+				echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 			} else {
-				respondWithError(w, http.StatusInternalServerError, err.Error())
-				return
+				echo.NewHTTPError(http.StatusUnauthorized, err.Error())
 			}
 		}
 		fmt.Println("User is authenticated")
-		handler(w, r, user)
+		handler(e, user)
+		return nil
 	}
 }

@@ -46,6 +46,7 @@ func main() {
 	// Little bit of middlewares for housekeeping
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
+	e.Use(middleware.Logger())
 	NewTemplateRenderer(e, "ui/html/*/*.tmpl")
 
 	// srv := &http.Server{
