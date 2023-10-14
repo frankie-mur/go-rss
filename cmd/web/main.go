@@ -38,7 +38,7 @@ func main() {
 		DB: datastore,
 		e:  e,
 	}
-
+	//Declare our routes
 	app.routes()
 
 	go initScraper(datastore, 10, time.Hour)
@@ -47,17 +47,9 @@ func main() {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
+	//Render all of our templates
 	NewTemplateRenderer(e, "ui/html/*/*.tmpl")
 
-	// srv := &http.Server{
-	// 	Addr:    fmt.Sprintf("localhost:%s", port),
-	// 	Handler: app.routes(),
-	// }
-	//	fmt.Printf("Starting server on addr %s\n", srv.Addr)
-	//	err = srv.ListenAndServe()
-	// if err != nil {
-	// 	log.Fatal(err.Error())
-	// }
 	if err := e.Start(":8080"); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

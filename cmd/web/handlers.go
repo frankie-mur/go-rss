@@ -19,23 +19,20 @@ func (app *application) readinessHandler(c echo.Context) error {
 	return c.JSON(200, data)
 }
 
-type createUserRequest struct {
-	Name string `json:"name"`
-}
-
 func (app *application) createUserHandler(c echo.Context) error {
 	/* Need to also check len(payload.Name) because default behavior
 	does not error if field is not present */
-	var req createUserRequest
-	if err := decodeJson(c.Request(), &req); err != nil || len(req.Name) == 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
+	//	var req createUserRequest
+	// if err := decodeJson(c.Request(), &req); err != nil || len(req.Name) == 0 {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	// }
 	//Using name we can create a new user
+	name := c.FormValue("name")
 	user, err := app.DB.CreateUser(context.Background(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Name:      req.Name,
+		Name:      name,
 	})
 	if err != nil {
 		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -144,7 +141,7 @@ func (app *application) deleteFeedFollowHandler(e echo.Context, u database.User)
 	fmt.Printf("Param %s\n", feedFollowID)
 	feed_id, err := uuid.Parse(param)
 	if err != nil {
-		fmt.Print("Error %v", err.Error())
+		fmt.Printf("Error %v", err.Error())
 		return echo.ErrBadRequest
 	}
 	err = app.DB.DeleteFeedFollow(e.Request().Context(), database.DeleteFeedFollowParams{

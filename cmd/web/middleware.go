@@ -16,7 +16,7 @@ func (app *application) middlewareAuth(handler authedHandler) echo.HandlerFunc {
 	return func(e echo.Context) error {
 		authHeader := e.Request().Header.Get("Authorization")
 		if authHeader == "" {
-			echo.NewHTTPError(http.StatusUnauthorized, errors.New("Invalid authorization header"))
+			echo.NewHTTPError(http.StatusUnauthorized, errors.New("invalid authorization header"))
 		}
 		//Validate authorization header is in correct format
 		apikey, err := validateAuthHeader(authHeader)
