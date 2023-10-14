@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -37,7 +38,9 @@ func (app *application) createUserHandler(c echo.Context) error {
 	if err != nil {
 		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return c.JSON(http.StatusCreated, user)
+	log.Printf("successfully created user %v", user.Name)
+	//TODO: unpdate redirect route to not include limit query
+	return c.Redirect(http.StatusSeeOther, "/posts/15")
 }
 
 func (app *application) getUserByApiKeyHandler(e echo.Context, u database.User) error {
