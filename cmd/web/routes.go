@@ -1,11 +1,11 @@
 package main
 
-import "github.com/labstack/echo/v4"
+import session "github.com/spazzymoto/echo-scs-session"
 
 func (app *application) routes() {
 	//Init our session group to attach middleware that use sessions
 	sessionRoutes := app.e.Group("/session")
-	sessionRoutes.Use(echo.WrapMiddleware(app.session.LoadAndSave))
+	sessionRoutes.Use(session.LoadAndSave(app.session))
 	// Health
 	app.e.GET("/health", app.readinessHandler)
 	//Pages

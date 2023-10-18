@@ -41,8 +41,3 @@ func (app *application) middlewareAuth(handler authedHandler) echo.HandlerFunc {
 		return nil
 	}
 }
-
-//// SessionMiddleware Wrap the scs LoadAndSave middleware to make compatible with echo middleware
-//func (app *application) SessionMiddleware(next echo.HandlerFunc) echo.MiddlewareFunc {
-//	return echo.WrapMiddleware(app.session.LoadAndSave)
-//}

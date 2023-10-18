@@ -3,15 +3,16 @@ module github.com/frankie-mur/go-rss
 go 1.21.0
 
 require (
+	github.com/alexedwards/scs/postgresstore v0.0.0-20230902070821-95fa2ac9d520
+	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.11.2
 	github.com/lib/pq v1.10.9
+	github.com/spazzymoto/echo-scs-session v1.0.0
 )
 
 require (
-	github.com/alexedwards/scs/postgresstore v0.0.0-20230902070821-95fa2ac9d520 // indirect
-	github.com/alexedwards/scs/v2 v2.5.1 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
