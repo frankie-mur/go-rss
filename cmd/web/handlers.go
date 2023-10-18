@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
+	"github.com/frankie-mur/go-rss/internal/validator"
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/frankie-mur/go-rss/internal/database"
@@ -13,34 +17,61 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func (app *application) readinessHandler(c echo.Context) error {
+func (app *application) readinessHandler(e echo.Context) error {
 	data := map[string]string{
 		"status": "OK",
 	}
-	return c.JSON(200, data)
+	return e.JSON(200, data)
 }
 
-func (app *application) createUserHandler(c echo.Context) error {
-	/* Need to also check len(payload.Name) because default behavior
-	does not error if field is not present */
-	//	var req createUserRequest
-	// if err := decodeJson(c.Request(), &req); err != nil || len(req.Name) == 0 {
-	// 	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	// }
+func (app *application) createUserHandler(e echo.Context) error {
 	//Using name we can create a new user
-	name := c.FormValue("name")
+	name := e.FormValue("name")
+	email := e.FormValue("email")
+	if !validator.Matches(email, validator.EmailRX) {
+		return echo.ErrBadRequest
+	}
 	user, err := app.DB.CreateUser(context.Background(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Name:      name,
+		Email: sql.NullString{
+			String: email,
+			Valid:  true,
+		},
 	})
 	if err != nil {
-		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		if strings.Contains(err.Error(), "duplicate key") {
+			return echo.NewHTTPError(http.StatusBadRequest, "User already exists")
+		}
+		return echo.ErrInternalServerError
 	}
 	log.Printf("successfully created user %v", user.Name)
-	//TODO: unpdate redirect route to not include limit query
-	return c.Redirect(http.StatusSeeOther, "/posts/15")
+	//Add to userId to our session
+	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
+	return e.Redirect(http.StatusSeeOther, "/")
+}
+
+func (app *application) loginUserHandler(e echo.Context) error {
+	email := e.FormValue("email")
+	if !validator.Matches(email, validator.EmailRX) {
+		return echo.ErrBadRequest
+	}
+	user, err := app.DB.GetUserByEmail(e.Request().Context(), sql.NullString{
+		String: email,
+		Valid:  true,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return echo.NewHTTPError(http.StatusUnauthorized, err.Error())
+		} else {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+	}
+	log.Printf("Succesfully fetched user")
+	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
+	return e.Redirect(http.StatusSeeOther, "/")
 }
 
 func (app *application) getUserByApiKeyHandler(e echo.Context, u database.User) error {
@@ -63,6 +94,7 @@ func (app *application) createFeedHandler(e echo.Context, u database.User) error
 	if err := decodeJson(e.Request(), &req); err != nil || len(req.Name) == 0 || len(req.Url) == 0 {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+	fmt.Println("In create feed")
 	//Create a new feed
 	feed, err := app.DB.CreateFeed(e.Request().Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -85,7 +117,7 @@ func (app *application) createFeedHandler(e echo.Context, u database.User) error
 		UserID:    u.ID,
 		FeedID:    feed.ID,
 	})
-
+	fmt.Println("created feed")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -167,23 +199,24 @@ func (app *application) getAllFeedFollows(e echo.Context, u database.User) error
 	return e.JSON(http.StatusOK, feed_follows)
 }
 
-func (app *application) getPostsByUserHandler(e echo.Context) error {
-	param := e.Param("limit")
+func (app *application) getPostsByUserHandler(e echo.Context, u database.User) error {
+	limitParam := e.QueryParam("limit")
+	//sortedParam := e.QueryParam("sorted")
 	var limit int
 	var err error
-	fmt.Printf("Param: %v", param)
-	if len(param) == 0 {
+	fmt.Printf("Param: %v", limitParam)
+	if len(limitParam) == 0 {
+		//Default to query for 15 posts
 		limit = 15
 	} else {
-		limit, err = strconv.Atoi(param)
+		limit, err = strconv.Atoi(limitParam)
 		if err != nil {
 			echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 	}
 
 	posts, err := app.DB.GetPostsByUserId(e.Request().Context(), database.GetPostsByUserIdParams{
-		//Hard code in a UUID
-		UserID: uuid.MustParse("8a2de18d-4813-431e-a038-38dac55e22d8"),
+		UserID: u.ID,
 		Limit:  int32(limit),
 	})
 	if err != nil {

@@ -7,9 +7,13 @@ import (
 )
 
 func (app *application) indexHandler(e echo.Context) error {
-	return e.Render(http.StatusOK, "index", nil)
+	return e.Render(http.StatusOK, "index", app.pageData)
 }
 
 func (app *application) signupHandler(e echo.Context) error {
 	return e.Render(http.StatusOK, "signup", nil)
+}
+
+func (app *application) loginHandler(e echo.Context) error {
+	return e.Render(http.StatusOK, "login", nil)
 }

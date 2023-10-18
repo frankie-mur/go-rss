@@ -46,4 +46,5 @@ type User struct {
 	UpdatedAt time.Time
 	Name      string
 	Apikey    string
+	Email     sql.NullString
 }
