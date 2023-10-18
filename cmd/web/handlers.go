@@ -90,18 +90,24 @@ type createFeedResponse struct {
 }
 
 func (app *application) createFeedHandler(e echo.Context, u database.User) error {
-	var req createFeedRequest
-	if err := decodeJson(e.Request(), &req); err != nil || len(req.Name) == 0 || len(req.Url) == 0 {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
+	//var req createFeedRequest
+	//if err := decodeJson(e.Request(), &req); err != nil || len(req.Name) == 0 || len(req.Url) == 0 {
+	//	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	//}
 	fmt.Println("In create feed")
+	name := e.FormValue("name")
+	url := e.FormValue("url")
+	//Validate form data
+	if len(name) == 0 || len(url) == 0 || !validator.Matches(url, validator.RssUrlRX) {
+		return echo.ErrBadRequest
+	}
 	//Create a new feed
 	feed, err := app.DB.CreateFeed(e.Request().Context(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Name:      req.Name,
-		Url:       req.Url,
+		Name:      name,
+		Url:       url,
 		UserID:    u.ID,
 	})
 	if err != nil {

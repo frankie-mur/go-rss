@@ -3,7 +3,8 @@ package main
 import session "github.com/spazzymoto/echo-scs-session"
 
 func (app *application) routes() {
-	//Init our session group to attach middleware that use sessions
+	// sessionRoutes is a group to attach middleware that use sessions
+	// (mostly for auth purposes)
 	sessionRoutes := app.e.Group("/session")
 	sessionRoutes.Use(session.LoadAndSave(app.session))
 	// Health
@@ -15,10 +16,9 @@ func (app *application) routes() {
 	//Users
 	app.e.POST("/users/signup", app.createUserHandler)
 	sessionRoutes.POST("/users/login", app.loginUserHandler)
-	//AUTH
-	sessionRoutes.GET("/users", app.middlewareAuth(app.getUserByApiKeyHandler))
 	//Feeds
 	sessionRoutes.POST("/feeds", app.middlewareAuth(app.createFeedHandler))
+
 	app.e.GET("/feeds", app.getAllFeedsHandler)
 	//Feed Follows
 	sessionRoutes.GET("/feed_follows", app.middlewareAuth(app.getAllFeedFollows))
@@ -26,5 +26,4 @@ func (app *application) routes() {
 	sessionRoutes.DELETE("/feed_follows/:id", app.middlewareAuth(app.deleteFeedFollowHandler))
 	//Posts
 	sessionRoutes.GET("/posts", app.middlewareAuth(app.getPostsByUserHandler))
-
 }

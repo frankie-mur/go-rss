@@ -55,5 +55,4 @@ func fetchFeed(url string) (Rss, error) {
 		return Rss{}, err
 	}
 	return rss, nil
-
 }

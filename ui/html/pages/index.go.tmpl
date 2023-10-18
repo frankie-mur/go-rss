@@ -25,6 +25,7 @@
     <button hx-get="/session/posts" hx-vars="limit:document.getElementById('limitSelector').value" hx-swap="outerHTML" hx-target="#posts">
       Click Me
     </button>
+    {{template "create_feed_form" .}}
     <div class="grid grid-cols-4 gap-4">
       <div id="posts"></div>
     </div>
