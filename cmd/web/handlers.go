@@ -70,7 +70,26 @@ func (app *application) loginUserHandler(e echo.Context) error {
 		}
 	}
 	log.Printf("Succesfully fetched user")
+	// Use the RenewToken() method on the current session to change the session
+	// ID. It's good practice to generate a new session ID when the
+	// authentication state or privilege levels changes for the user (e.g. login
+	// and logout operations).
+	err = app.session.RenewToken(e.Request().Context())
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+	app.pageData["IsAuthenticated"] = true
 	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
+	return e.Redirect(http.StatusSeeOther, "/")
+}
+
+func (app *application) logoutUserHandler(e echo.Context) error {
+	err := app.session.RenewToken(e.Request().Context())
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+	app.pageData["IsAuthenticated"] = false
+	app.session.Remove(e.Request().Context(), "authenticatedUserID")
 	return e.Redirect(http.StatusSeeOther, "/")
 }
 

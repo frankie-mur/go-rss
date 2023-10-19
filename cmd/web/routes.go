@@ -14,8 +14,9 @@ func (app *application) routes() {
 	app.e.GET("/signup", app.signupHandler)
 	app.e.GET("/login", app.loginHandler)
 	//Users
-	app.e.POST("/users/signup", app.createUserHandler)
+	sessionRoutes.POST("/users/signup", app.createUserHandler)
 	sessionRoutes.POST("/users/login", app.loginUserHandler)
+	sessionRoutes.POST("/users/logout", app.logoutUserHandler)
 	//Feeds
 	sessionRoutes.POST("/feeds", app.middlewareAuth(app.createFeedHandler))
 

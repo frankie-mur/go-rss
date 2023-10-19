@@ -2,13 +2,10 @@
 <nav>
     <div>
         <a href='/'>Home</a>
-         {{if .IsAuthenticated}}
-            <a href='/'>Add Feed</a>
-        {{end}}
     </div>
     <div>
         {{if .IsAuthenticated}}
-            <form action='/logout' method='POST'>
+            <form action='/session/users/logout' method='POST'>
                 <button>Logout</button>
             </form>
         {{else}}

@@ -11,9 +11,9 @@ func (app *application) indexHandler(e echo.Context) error {
 }
 
 func (app *application) signupHandler(e echo.Context) error {
-	return e.Render(http.StatusOK, "signup", nil)
+	return e.Render(http.StatusOK, "signup", app.pageData)
 }
 
 func (app *application) loginHandler(e echo.Context) error {
-	return e.Render(http.StatusOK, "login", nil)
+	return e.Render(http.StatusOK, "login", app.pageData)
 }

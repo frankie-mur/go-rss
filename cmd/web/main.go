@@ -54,9 +54,10 @@ func main() {
 	session.Cookie.Secure = true
 	//Declare and assign our application struct
 	app := &application{
-		DB:      datastore,
-		e:       e,
-		session: session,
+		DB:       datastore,
+		e:        e,
+		session:  session,
+		pageData: make(map[string]interface{}),
 	}
 	//Declare our routes
 	app.routes()
