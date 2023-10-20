@@ -1,6 +1,6 @@
 {{define "create_feed_form"}}
 <h2> Add a feed </h2>
-<form hx-post="/session/feeds" hx-trigger="submit">
+<form hx-post="/feeds" hx-trigger="submit">
     <input type="text" id="name" name="name" placeholder="Enter feed name">
     <input type="url" id="url" name="url" placeholder="Enter feed url">
     <button type="submit">Add feed</button>

@@ -50,6 +50,10 @@ func (app *application) createUserHandler(e echo.Context) error {
 	log.Printf("successfully created user %v", user.Name)
 	//Add to userId to our session
 	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
+
+	app.session.Put(e.Request().Context(), "IsAuthenticated", true)
+	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
+
 	return e.Redirect(http.StatusSeeOther, "/")
 }
 
@@ -78,8 +82,10 @@ func (app *application) loginUserHandler(e echo.Context) error {
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
-	app.pageData["IsAuthenticated"] = true
+
+	app.session.Put(e.Request().Context(), "IsAuthenticated", true)
 	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
+
 	return e.Redirect(http.StatusSeeOther, "/")
 }
 
@@ -88,8 +94,10 @@ func (app *application) logoutUserHandler(e echo.Context) error {
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
-	app.pageData["IsAuthenticated"] = false
+
+	app.session.Remove(e.Request().Context(), "IsAuthenticated")
 	app.session.Remove(e.Request().Context(), "authenticatedUserID")
+
 	return e.Redirect(http.StatusSeeOther, "/")
 }
 

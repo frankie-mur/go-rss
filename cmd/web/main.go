@@ -15,13 +15,13 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	_ "github.com/lib/pq"
+	sessionmidlleware "github.com/spazzymoto/echo-scs-session"
 )
 
 type application struct {
-	DB       *database.Queries
-	e        *echo.Echo
-	session  *scs.SessionManager
-	pageData map[string]interface{}
+	DB      *database.Queries
+	e       *echo.Echo
+	session *scs.SessionManager
 }
 
 func main() {
@@ -54,10 +54,9 @@ func main() {
 	session.Cookie.Secure = true
 	//Declare and assign our application struct
 	app := &application{
-		DB:       datastore,
-		e:        e,
-		session:  session,
-		pageData: make(map[string]interface{}),
+		DB:      datastore,
+		e:       e,
+		session: session,
 	}
 	//Declare our routes
 	app.routes()
@@ -69,7 +68,7 @@ func main() {
 	e.Pre(middleware.RemoveTrailingSlash())
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
-	e.Use()
+	e.Use(sessionmidlleware.LoadAndSave(app.session))
 
 	//Render all of our templates
 	NewTemplateRenderer(e, "ui/html/*/*.tmpl")
