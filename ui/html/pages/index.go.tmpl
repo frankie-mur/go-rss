@@ -15,23 +15,31 @@
   </head>
   {{template "nav" .}}
   <!-- Dropdown for setting the limit -->
-    <select id="limitSelector">
+  <div class="flex flex-col w-full lg:flex-row">
+   <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
+    <select class="select select-primary w-full max-w-xs" id="limitSelector">
+      <option disabled selected>Select How Many Posts to Load</option>
       <option value="5">5 Posts</option>
       <option value="10">10 Posts</option>
       <option value="20">20 Posts</option>
-    </select> 
+    </select>
+    </div>
+    <div class="divider lg:divider-horizontal"></div>
+     <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
+    {{template "create_feed_form" .}}
+    </div>
+    </div>
   <body class="container mx-auto">
   {{with .Flash }}
-    <div class="alert alert-success">
-      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    <div class="toast toast-top toast-end">
+        <div class="alert alert-info">
       <span>{{.}}</span>
+      </div>
     </div>
     {{end}}
-    <h1 class="font-bold text-2xl my-16">RSS FEED</h1>
     <button class="btn" hx-get="/posts" hx-vars="limit:document.getElementById('limitSelector').value" hx-swap="outerHTML" hx-target="#posts">
       Load feeds
     </button>
-    {{template "create_feed_form" .}}
     <div class="grid grid-cols-4 gap-4">
       <div id="posts"></div>
     </div>

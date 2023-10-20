@@ -97,6 +97,7 @@ func (app *application) logoutUserHandler(e echo.Context) error {
 
 	app.session.Remove(e.Request().Context(), "isAuthenticated")
 	app.session.Remove(e.Request().Context(), "authenticatedUserID")
+	app.session.Put(e.Request().Context(), "flash", "Successfully Logged Out!")
 
 	return e.Redirect(http.StatusSeeOther, "/")
 }
