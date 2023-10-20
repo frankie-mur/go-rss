@@ -48,10 +48,9 @@ func (app *application) createUserHandler(e echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 	log.Printf("successfully created user %v", user.Name)
-	//Add to userId to our session
-	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
 
-	app.session.Put(e.Request().Context(), "IsAuthenticated", true)
+	app.session.Put(e.Request().Context(), "flash", "Successfully Created Account!")
+	app.session.Put(e.Request().Context(), "isAuthenticated", true)
 	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
 
 	return e.Redirect(http.StatusSeeOther, "/")
@@ -83,10 +82,11 @@ func (app *application) loginUserHandler(e echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	app.session.Put(e.Request().Context(), "IsAuthenticated", true)
+	app.session.Put(e.Request().Context(), "flash", "Successfully Logged In!")
+	app.session.Put(e.Request().Context(), "isAuthenticated", true)
 	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))
 
-	return e.Redirect(http.StatusSeeOther, "/")
+	return e.Redirect(http.StatusFound, "/")
 }
 
 func (app *application) logoutUserHandler(e echo.Context) error {
@@ -95,7 +95,7 @@ func (app *application) logoutUserHandler(e echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	app.session.Remove(e.Request().Context(), "IsAuthenticated")
+	app.session.Remove(e.Request().Context(), "isAuthenticated")
 	app.session.Remove(e.Request().Context(), "authenticatedUserID")
 
 	return e.Redirect(http.StatusSeeOther, "/")

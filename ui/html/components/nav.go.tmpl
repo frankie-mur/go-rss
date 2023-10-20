@@ -1,17 +1,23 @@
 {{define "nav"}}
 <nav>
-    <div>
-        <a href='/'>Home</a>
-    </div>
-    <div>
+    <div class="navbar bg-base-100">
+      <div class="flex-1">
+        <a class="btn btn-ghost normal-case text-xl">go-rss</a>
+      </div>
+      <div class="flex-none">
+          <ul class="menu menu-horizontal px-1">
         {{if .IsAuthenticated}}
-            <form action='/users/logout' method='POST'>
-                <button>Logout</button>
+        <li>
+            <form action="/users/logout" method="post">
+                <button type="submit">Logout</button>
             </form>
+            </li>
         {{else}}
-            <a href='/signup'>Signup</a>
-            <a href='/login'>Login</a>
+            <li> <a href='/signup'>Signup</a> </a>
+            <li> <a href='/login'>Login</a> </a>
         {{end}}
+        </ul>
+    </div>
     </div>
 </nav>
 {{end}}

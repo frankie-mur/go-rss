@@ -1,23 +1,16 @@
 {{define "posts"}}
 {{if .}}
     {{range .}}
-        <div class="max-w-sm rounded overflow-hidden shadow-lg bg-white m-4">
+        <div class="card w-96 bg-primary text-primary-content">
             <a href={{.Url}}>
-          <img
-            class="w-full"
-            src="https://via.placeholder.com/400x200"
-            alt="Sunset in the mountains"
-          />
-          <div class="px-6 py-4">
-            <div class="font-bold text-xl mb-2">{{.Title}}</div>
-            <p class="text-gray-700 text-base">{{.Description}}</p>
-          </div>
-          <div class="px-6 pt-4 pb-2">
+          <div class="card-body">
+            <h2 class="card-title">{{.Title}}</div>
+            <p>{{.Description}}</p>
             <span
               class="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
               >{{.PublishedAt}}</span
             >
-          </div>
+         </div>
           </a>
         </div>
     {{end}}

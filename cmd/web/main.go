@@ -72,7 +72,9 @@ func main() {
 
 	//Render all of our templates
 	NewTemplateRenderer(e, "ui/html/*/*.tmpl")
+
 	//Start the server!
+
 	if err := e.Start(fmt.Sprintf(":%s", port)); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}

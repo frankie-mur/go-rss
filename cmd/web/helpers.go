@@ -26,13 +26,13 @@ func decodeJson(r *http.Request, payload interface{}) error {
 
 func (app *application) newPageData(e echo.Context) PageData {
 	return PageData{
-		//	Flash:           app.session.PopString(e.Request().Context(), "flash"),
+		Flash:           app.session.PopString(e.Request().Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(e),
 	}
 }
 
 func (app *application) isAuthenticated(e echo.Context) bool {
-	isAuthenticated := app.session.GetBool(e.Request().Context(), "IsAuthenticated")
+	isAuthenticated := app.session.GetBool(e.Request().Context(), "isAuthenticated")
 	if !isAuthenticated {
 		return false
 	}
