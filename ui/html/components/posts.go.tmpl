@@ -1,6 +1,8 @@
 {{define "posts"}}
 {{if .}}
-    {{range .}}
+    {{range $name, $post := . }}
+      <h3>{{$name}}</h3>
+      {{range $post }}
         <div class="card w-96 bg-primary text-primary-content">
             <a href={{.Url}}>
           <div class="card-body">
@@ -13,6 +15,7 @@
          </div>
           </a>
         </div>
+    {{end}}
     {{end}}
 {{else}}
 <h2> No posts! </h2>

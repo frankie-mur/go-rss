@@ -238,7 +238,6 @@ func (app *application) getPostsByUserHandler(e echo.Context, u database.User) e
 	//sortedParam := e.QueryParam("sorted")
 	var limit int
 	var err error
-	fmt.Printf("Param: %v", limitParam)
 	if len(limitParam) == 0 {
 		//Default to query for 15 posts
 		limit = 15
@@ -256,5 +255,10 @@ func (app *application) getPostsByUserHandler(e echo.Context, u database.User) e
 	if err != nil {
 		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return e.Render(http.StatusOK, "posts", posts)
+	//Group posts by name
+	groupedPosts := make(map[string][]database.GetPostsByUserIdRow)
+	for _, post := range posts {
+		groupedPosts[post.Name.String] = append(groupedPosts[post.Name.String], post)
+	}
+	return e.Render(http.StatusOK, "posts", groupedPosts)
 }

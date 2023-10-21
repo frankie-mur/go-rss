@@ -40,6 +40,12 @@ type Post struct {
 	FeedID      uuid.UUID
 }
 
+type Session struct {
+	Token  string
+	Data   []byte
+	Expiry time.Time
+}
+
 type User struct {
 	ID        uuid.UUID
 	CreatedAt time.Time
