@@ -107,11 +107,6 @@ func (app *application) getUserByApiKeyHandler(e echo.Context, u database.User) 
 	return e.JSON(http.StatusOK, u)
 }
 
-type createFeedRequest struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
-
 type createFeedResponse struct {
 	Feed        database.Feed       `json:"feed"`
 	Feed_Follow database.FeedFollow `json:"feed_follow"`
