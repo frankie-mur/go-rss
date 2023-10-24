@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 	"sync"
@@ -44,31 +45,24 @@ func initScraper(
 func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 	defer wg.Done()
 
+	//Check if it's been marked as fetched in the last hour if so return immediately
+	if !feed.LastFetchedAt.Time.Add(time.Hour).After(time.Now()) {
+		fmt.Printf("Feed %v has been marked as fetched in the last hour\n", feed.ID)
+		return
+	}
+
 	_, err := db.MarkFeedAsFetched(context.Background(), feed.ID)
 	if err != nil {
 		log.Printf("Failed to mark feed as fetched: %v", err)
 		return
 	}
 
-	fetched_feed, err := fetchFeed(feed.Url)
+	fetchedFeed, err := fetchFeed(feed.Url)
 	if err != nil {
 		log.Printf("Failed to fetch feed: %v", err)
 		return
 	}
-	for _, f := range fetched_feed.Channel.Item {
-		//TODO: Description and published at not being inserted correctly
-		feed_time := sql.NullTime{}
-		if f.PubDate == "" {
-			feed_time.Time = time.Now()
-			feed_time.Valid = false
-		}
-		time_parsed, err := time.Parse("Mon, 02 Jan 2006 15:04:05 -0700", f.PubDate)
-		if err != nil {
-			log.Printf("Failed to parse time: %v", err)
-
-		}
-		feed_time.Time = time_parsed
-		feed_time.Valid = true
+	for _, f := range fetchedFeed.Items {
 		post, err := db.CreatePost(
 			context.Background(),
 			database.CreatePostParams{
@@ -78,8 +72,11 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 				Title:       f.Title,
 				Url:         f.Link,
 				Description: f.Description,
-				PublishedAt: feed_time,
-				FeedID:      feed.ID,
+				PublishedAt: sql.NullTime{
+					Time:  *f.PublishedParsed,
+					Valid: true,
+				},
+				FeedID: feed.ID,
 			},
 		)
 		if err != nil {
@@ -93,5 +90,5 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 		log.Printf("Created Post with id %v, and title %s", post.ID, post.Title)
 	}
 
-	log.Printf("Fetched feed with title %s, with %d posts", fetched_feed.Channel.Title, len(fetched_feed.Channel.Item))
+	log.Printf("Fetched feed with title %s, with %d posts", fetchedFeed.Title, len(fetchedFeed.Items))
 }
