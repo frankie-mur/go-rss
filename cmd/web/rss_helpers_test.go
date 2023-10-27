@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/mmcdole/gofeed"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -29,7 +30,7 @@ func TestFetchFeeds(t *testing.T) {
 		if err != nil {
 			t.Errorf("Function called with error: %v", err)
 		}
-		want := Rss{}
+		want := gofeed.Feed{}
 		if reflect.DeepEqual(got, want) {
 			t.Errorf("got %v, want %v", got, want)
 		}
