@@ -31,6 +31,12 @@ func (app *application) createUserHandler(e echo.Context) error {
 	if !validator.Matches(email, validator.EmailRX) {
 		return echo.ErrBadRequest
 	}
+	_, err := validator.VerifyEmail(email)
+	if err != nil {
+		fmt.Printf("email verfication failed with error%v\n", err)
+		return echo.ErrBadRequest
+	}
+	// User email is valid, we can create a new user
 	user, err := app.DB.CreateUser(context.Background(), database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
