@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/frankie-mur/go-rss/internal/email_generator"
 	"github.com/frankie-mur/go-rss/internal/validator"
 	"log"
 	"net/http"
@@ -54,7 +55,12 @@ func (app *application) createUserHandler(e echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 	log.Printf("successfully created user %v", user.Name)
-
+	//Send welcome email
+	err = email_generator.SendEmail(email, email_generator.GenerateWelcomeEmail(name))
+	if err != nil {
+		fmt.Printf("error sending welcome email: %v\n", err)
+		return echo.ErrInternalServerError
+	}
 	app.session.Put(e.Request().Context(), "flash", "Successfully Created Account!")
 	app.session.Put(e.Request().Context(), "isAuthenticated", true)
 	app.session.Put(e.Request().Context(), "authenticatedUserID", fmt.Sprintf("%s", user.ID))

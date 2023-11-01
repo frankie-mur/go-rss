@@ -1,15 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-
 	"github.com/labstack/echo/v4"
+	"net/http"
 )
 
 func (app *application) indexHandler(e echo.Context) error {
 	data := app.newPageData(e)
-	fmt.Print(data)
 	return e.Render(http.StatusOK, "index", data)
 }
 
