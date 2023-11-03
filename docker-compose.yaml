@@ -1,0 +1,33 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+      POSTGRES_DB:
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'" ]
+      interval: 10s
+      timeout: 1s
+      retries: 5
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - migrations
+    environment:
+      POSTGRES_HOST: db
+  migrations:
+    image: ghcr.io/kukymbr/goose-docker:3.15.1
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=host= port= user= password= dbname=
+      - GOOSE_VERBOSE=true
+
+    volumes:
+      - ./sql/schema:/migrations

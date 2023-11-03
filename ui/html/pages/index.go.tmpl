@@ -1,35 +1,21 @@
 {{define "index"}}
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/daisyui@3.9.2/dist/full.css"
-      rel="stylesheet"
-      type="text/css"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  {{template "nav" .}}
-  <!-- Dropdown for setting the limit -->
-  <div class="flex flex-col w-full lg:flex-row">
-   <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
-    <select class="select select-primary w-full max-w-xs" id="limitSelector">
-      <option disabled selected>Select How Many Posts to Load</option>
-      <option value="5">5 Posts</option>
-      <option value="10">10 Posts</option>
-      <option value="20">20 Posts</option>
-    </select>
-    </div>
-    <div class="divider lg:divider-horizontal"></div>
-     <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
-    {{template "create_feed_form" .}}
-    </div>
-    </div>
+{{template "base"}}
   <body class="container mx-auto">
+    <!-- Dropdown for setting the limit -->
+    <div class="flex flex-col w-full lg:flex-row">
+     <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
+      <select class="select select-primary w-full max-w-xs" id="limitSelector">
+        <option disabled selected>Select How Many Posts to Load</option>
+        <option value="5">5 Posts</option>
+        <option value="10">10 Posts</option>
+        <option value="20">20 Posts</option>
+      </select>
+      </div>
+      <div class="divider lg:divider-horizontal"></div>
+       <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
+      {{template "create_feed_form" .}}
+      </div>
+      </div>
   {{with .Flash }}
     <div class="toast toast-top toast-end">
         <div class="alert alert-info">
@@ -44,5 +30,4 @@
       <div id="posts"></div>
     </div>
   </body>
-</html>
 {{end}}

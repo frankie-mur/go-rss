@@ -1,18 +1,5 @@
 {{define "signup"}}
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://cdn.jsdelivr.net/npm/daisyui@3.9.2/dist/full.css"
-      rel="stylesheet"
-      type="text/css"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
+{{template "base"}}
   <body class="container mx-auto">
     <h1 class="font-bold text-2xl my-16">Sign Up</h1>
     <form hx-post="/users/signup" hx-trigger="submit">
@@ -21,5 +8,4 @@
       <button type="submit">Signup</button>
     </form>
   </body>
-</html>
 {{end}}
