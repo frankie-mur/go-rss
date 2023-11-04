@@ -1,16 +1,6 @@
 {{define "index"}}
-{{template "base"}}
+{{template "base" .}}
   <body class="container mx-auto">
-    <!-- Dropdown for setting the limit -->
-    <div class="flex flex-col w-full lg:flex-row">
-     <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
-      <select class="select select-primary w-full max-w-xs" id="limitSelector">
-        <option disabled selected>Select How Many Posts to Load</option>
-        <option value="5">5 Posts</option>
-        <option value="10">10 Posts</option>
-        <option value="20">20 Posts</option>
-      </select>
-      </div>
       <div class="divider lg:divider-horizontal"></div>
        <div class="grid flex-grow h-32 card bg-base-300 rounded-box place-items-center">
       {{template "create_feed_form" .}}
@@ -23,9 +13,7 @@
       </div>
     </div>
     {{end}}
-    <button class="btn" hx-get="/posts" hx-vars="limit:document.getElementById('limitSelector').value" hx-swap="outerHTML" hx-target="#posts">
-      Load feeds
-    </button>
+    {{template "posts" .}}
     <div>
       <div id="posts"></div>
     </div>

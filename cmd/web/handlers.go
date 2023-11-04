@@ -233,11 +233,11 @@ func (app *application) deleteFeedFollowHandler(e echo.Context, u database.User)
 }
 
 func (app *application) getAllFeedFollows(e echo.Context, u database.User) error {
-	feed_follows, err := app.DB.GetAllFeedFollows(e.Request().Context(), u.ID)
+	feedFollows, err := app.DB.GetAllFeedFollows(e.Request().Context(), u.ID)
 	if err != nil {
 		echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
-	return e.JSON(http.StatusOK, feed_follows)
+	return e.JSON(http.StatusOK, feedFollows)
 }
 
 func (app *application) getPostsByUserHandler(e echo.Context, u database.User) error {

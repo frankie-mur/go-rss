@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
+	"github.com/frankie-mur/go-rss/internal/database"
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"net/http"
 )
@@ -9,6 +12,8 @@ import (
 type PageData struct {
 	Flash           string
 	IsAuthenticated bool
+	Posts           map[string][]database.GetPostsByUserIdRow
+	FeedFollows     []database.FeedFollow
 }
 
 //func validateAuthHeader(authHeader string) (string, error) {
@@ -37,4 +42,39 @@ func (app *application) isAuthenticated(e echo.Context) bool {
 		return false
 	}
 	return isAuthenticated
+}
+
+func (app *application) getUserId(e echo.Context) (*uuid.UUID, error) {
+	userId := app.session.GetString(e.Request().Context(), "authenticatedUserID")
+	if len(userId) == 0 {
+		return nil, errors.New("no authenticated user ID in session")
+	}
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return nil, errors.New("failed to parse user ID from session")
+	}
+	return &userUUID, nil
+}
+
+func (app *application) getPosts(e echo.Context, data *PageData) error {
+	if !data.IsAuthenticated {
+		return errors.New("user must be authenticated to get feeds")
+	}
+	userUUID, err := app.getUserId(e)
+	if err != nil {
+		return errors.New("failed to get user ID from")
+	}
+	// Get feeds from the database
+	posts, err := app.DB.GetPostsByUserId(e.Request().Context(), database.GetPostsByUserIdParams{
+		UserID: *userUUID,
+		Limit:  int32(30),
+	})
+	//Group posts by name
+	groupedPosts := make(map[string][]database.GetPostsByUserIdRow)
+	for _, post := range posts {
+		groupedPosts[post.Name.String] = append(groupedPosts[post.Name.String], post)
+	}
+	//fmt.Printf("Got posts %v\n", groupedPosts)
+	data.Posts = groupedPosts
+	return nil
 }

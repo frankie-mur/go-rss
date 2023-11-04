@@ -1,6 +1,6 @@
 {{define "posts"}}
-{{if .}}
-    {{range $name, $post := . }}
+{{if .Posts }}
+    {{range $name, $post := .Posts }}
       <h3 class="text-center text-2xl my-4">{{$name}}</h3>
         <div class="flex overflow-x-auto space-x-4 p-4">
             {{range $post }}

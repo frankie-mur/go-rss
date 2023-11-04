@@ -46,14 +46,8 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 	defer wg.Done()
 
 	//Check if it's been marked as fetched in the last hour if so return immediately
-	if !feed.LastFetchedAt.Time.Add(time.Hour).After(time.Now()) {
+	if !feed.LastFetchedAt.Time.Add(time.Hour).Before(time.Now()) {
 		fmt.Printf("Feed %v has been marked as fetched in the last hour\n", feed.ID)
-		return
-	}
-
-	_, err := db.MarkFeedAsFetched(context.Background(), feed.ID)
-	if err != nil {
-		log.Printf("Failed to mark feed as fetched: %v", err)
 		return
 	}
 
@@ -62,6 +56,13 @@ func scrapeFeed(wg *sync.WaitGroup, db *database.Queries, feed database.Feed) {
 		log.Printf("Failed to fetch feed: %v", err)
 		return
 	}
+
+	_, err = db.MarkFeedAsFetched(context.Background(), feed.ID)
+	if err != nil {
+		log.Printf("Failed to mark feed as fetched: %v", err)
+		return
+	}
+
 	for _, f := range fetchedFeed.Items {
 		post, err := db.CreatePost(
 			context.Background(),
